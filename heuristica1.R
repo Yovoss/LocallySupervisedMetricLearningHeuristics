@@ -1,37 +1,44 @@
-#dataInput <- read.csv(file="~/Documentos/Metaheuristics/LocallySupervisedMetricLearningHeuristics/1_dataSetSAPS2.csv",header = TRUE, sep=",")
-dataInput <- read.csv("~/LSMLH/1_dataSetSAPS2.csv",header = TRUE, sep=",")
+dataInput <- read.csv(file="~/Documentos/Metaheuristics/LocallySupervisedMetricLearningHeuristics/1_dataSetSAPS2.csv",header = TRUE, sep=",")
+#dataInput <- read.csv("~/LSMLH/1_dataSetSAPS2.csv",header = TRUE, sep=",")
 #x = dataInput[, c(2:ncol(dataInput))]
 #y = dataInput[, c(1)]
-x = c(2:ncol(dataInput))
+
+# parameter: length of neighborhoods
 k = 5
-neighbour = 1
+
+#initialization of variables
 detP = 0
+x = c(2:ncol(dataInput))
 nFeatures = ncol(dataInput)-1
+
+#creation of a symetric matrix with det>0
 while (detP <= 0){
-  pMatrix = matrix(as.numeric(rexp(nFeatures^2, rate=.1),nFeatures))
+  pMatrix = matrix(rexp(nFeatures^2, rate=10), nrow = nFeatures, ncol = nFeatures)
   pMatrix = pMatrix %*% t(pMatrix)
   detP = det(pMatrix)
 }
 
-compactNeighborhood = matrix(0L, nrow = nrow(dataInput), ncol = k)
-scatterNeighborhood = matrix(0L, nrow = nrow(dataInput), ncol = k)
-for (i in 1:2){
-  xi = dataInput[i,x]
-  generalMahalanobis = matrix(data = NA, nrow = nrow(dataInput), ncol = 1)
-  for (j in 1:2){
+compactNeighborhood = matrix(0L, nrow = nrow(dataInput))
+scatterNeighborhood = matrix(0L, nrow = nrow(dataInput))
+for (i in 1:11){
+  neighbour = 1
+  xi = as.numeric(dataInput[i,x])
+  generalMahalanobis = matrix(data = NA, nrow = nrow(dataInput), ncol = 2)
+  for (j in 1:11){
     if (i != j){
-      xj = dataInput[j,x]
+      xj = as.numeric(dataInput[j,x])
       generalMahalanobis[j,1] = t((xi - xj)) %*% pMatrix %*% (xi-xj)
-      generalMahalanobis[j,2] = dataInput[i,1]
+      generalMahalanobis[j,2] = dataInput[j,1]
     }
   }
-  order(generalMahalanobis$V1,decreasing = FALSE)
+  #orderedMahalanobis = matrix(-1L, nrow = nrow(generalMahalanobis), ncol = ncol(generalMahalanobis))
+  orderedMahalanobis = generalMahalanobis[order(generalMahalanobis[,1], decreasing = TRUE),]
   while (neighbour < k*2){
-    if (generalMahalanobis[neighbour,2] == dataInput[i,1]){
-      compactNeighborhood[i] = compactNeighborhood[i] + generalMahalanobis[neighbour, 1]
+    if (orderedMahalanobis[neighbour, 2] == dataInput[i,1]){
+      compactNeighborhood[i] = compactNeighborhood[i] + orderedMahalanobis[neighbour, 1]
       neighbour = neighbour + 1
     }else{
-      scatterNeighborhood[i] = scatterNeighborhood[i] + generalMahalanobis[neighbour, 1]
+      scatterNeighborhood[i] = scatterNeighborhood[i] + orderedMahalanobis[neighbour, 1]
       neighbour = neighbour + 1
     }
   }
