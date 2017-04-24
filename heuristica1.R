@@ -1,5 +1,8 @@
-#dataInput <- read.csv(file="~/Documentos/Metaheuristics/LocallySupervisedMetricLearningHeuristics/1_dataSetSAPS2.csv",header = TRUE, sep=",")
-dataInput <- read.csv("~/LSMLH/1_dataSetSAPS2.csv",header = TRUE, sep=",")
+source("genalgCustom.R")
+source("SA.R")
+
+dataInput <- read.csv(file="~/Documentos/Metaheuristics/LocallySupervisedMetricLearningHeuristics/1_dataSetSAPS2.csv",header = TRUE, sep=",")
+#dataInput <- read.csv("~/LSMLH/1_dataSetSAPS2.csv",header = TRUE, sep=",")
 
 getPMatrix <- function(){
   
@@ -8,7 +11,6 @@ getPMatrix <- function(){
   
   #initialization of variables
   detP = 0
-  x = c(2:ncol(dataInput))
   nFeatures = ncol(dataInput)-1
   
   #creation of a symetric matrix with det>0
@@ -16,25 +18,30 @@ getPMatrix <- function(){
     pMatrix = matrix(runif(nFeatures^2, min = 0, max = 1), nrow = nFeatures, ncol = nFeatures)
     pMatrix[lower.tri(pMatrix)] = t(pMatrix)[lower.tri(pMatrix)]
     #pMatrix = pMatrix %*% t(pMatrix)
+    diag(pMatrix) = 1
     detP = det(pMatrix)
   }
   return(pMatrix)
 }
 
-objectiveFunction <- function(chromosome){
+objectiveFunction <- function(solution){
   
-  pMatrix = matrix(chromosome, nrow = 80, ncol = 80, byrow = TRUE)
+  pMatrix = matrix(1L, nrow = 80, ncol = 80, byrow = TRUE)
+  pMatrix[lower.tri(pMatrix, diag = FALSE)] <- solution
+  pMatrix = t(pMatrix)
+  pMatrix[lower.tri(pMatrix)] = t(pMatrix)[lower.tri(pMatrix)]
+  x = c(2:ncol(dataInput))
   
   # parameter: length of neighborhoods
   k = 5
   
   compactNeighborhood = matrix(0L, nrow = nrow(dataInput))
   scatterNeighborhood = matrix(0L, nrow = nrow(dataInput))
-  for (i in 1:201){
+  for (i in 1:21){
     neighbour =1
     xi = as.numeric(dataInput[i,x])
     generalMahalanobis = matrix(data = 0L, nrow = nrow(dataInput), ncol = 2)
-    for (j in 1:201){
+    for (j in 1:21){
       if (i != j){
         xj = as.numeric(dataInput[j,x])
         generalMahalanobis[j,1] = t((xi - xj)) %*% pMatrix %*% (xi-xj)
@@ -58,64 +65,35 @@ objectiveFunction <- function(chromosome){
   return(discriminabilityFunction)
 }
 
-
-#Genetic algorithm
-library(genalg)
-library(ggplot2)
-
-
-pMatrix <- getPMatrix()
-chromosome = as.vector(t(pMatrix))
-minFeature = 0
-maxFeature = 1
-minGen = matrix(0L, nrow = 80, ncol = 80)
-maxGen = matrix(1L, nrow = 80, ncol = 80)
-
-
-
-results = rbga(minGen, maxGen, evalFunc = objectiveFunction, popSize = 120, iters = 20, mutationChance = 0.01, verbose = TRUE, showSettings = TRUE)
-cat(genalg:::summary.rbga(results))
-genalg:::plot.rbga(results)
-plot(results, type = "hist")
-plot(results, type = "vars")
-
-
-simulated_annealing <- function(objectiveFunction, s0, niter = 10, step = 0.1) {
+geneticAlg = function(){
+  #Genetic algorithm
+  library(ggplot2)
   
-  # Initialize
-  ## s stands for state
-  ## f stands for function value
-  ## b stands for best
-  ## c stands for current
-  ## n stands for neighbor
-  s_b <- s_c <- s_n <- s0
-  f_b <- f_c <- f_n <- func(s_n)
-  message("It\tBest\tCurrent\tNeigh\tTemp")
-  message(sprintf("%i\t%.4f\t%.4f\t%.4f\t%.4f", 0L, f_b, f_c, f_n, 1))
   
-  for (k in 1:niter) {     
-    Temp <- (1 - step)^k
-    # consider a random neighbor
-    s_n <- rnorm(2, s_c, 1)
-    f_n <- func(s_n)
-    # update current state
-    if (f_n < f_c || runif(1, 0, 1) < exp(-(f_n - f_c) / Temp)) {
-      s_c <- s_n
-      f_c <- f_n
-    }
-    # update best state
-    if (f_n < f_b) {
-      s_b <- s_n
-      f_b <- f_n         
-    }
-    message(sprintf("%i\t%.4f\t%.4f\t%.4f\t%.4f", k, f_b, f_c, f_n, Temp))
-  }
-  return(list(iterations = niter, best_value = f_b, best_state = s_b))
+  pMatrix <- getPMatrix()
+  pMatrix[lower.tri(pMatrix, diag = TRUE)] = NA
+  chromosome = as.vector(t(pMatrix))
+  chromosome = chromosome[!is.na(chromosome)]
+  #minFeature = 0
+  #maxFeature = 1
+  #minGen = matrix(0L, nrow = 80, ncol = 80)
+  #maxGen = matrix(1L, nrow = 80, ncol = 80)
+  minGen[3160] = 0L
+  maxGen[3160] = 1L
+  
+  
+  
+  
+  results = rbga(minGen, maxGen, evalFunc = objectiveFunction, popSize = 6380, iters = 5, mutationChance = 0.01, verbose = TRUE)
+  cat(genalg:::summary.rbga(results))
+  genalg:::plot.rbga(results)
+  plot(results, type = "hist")
+  plot(results, type = "vars")
 }
 
 
-
-
+system.time(geneticAlg())
+#system.time(simulated_annealing(chromosome))
 
 
 
