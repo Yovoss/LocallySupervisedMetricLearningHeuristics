@@ -1,10 +1,9 @@
 source("genalgCustom.R")
 source("SA.R")
 
-dataInput <- read.csv(file="~/Documentos/Metaheuristics/LocallySupervisedMetricLearningHeuristics/1_dataSetSAPS2.csv",header = TRUE, sep=",")
-#dataInput <- read.csv("~/LSMLH/1_dataSetSAPS2.csv",header = TRUE, sep=",")
+dataInput <- read.csv(file="1_dataSetSAPS2.csv",header = TRUE, sep=",")
 
-getPMatrix <- function(){
+getPSample <- function(){
   
   #x = dataInput[, c(2:ncol(dataInput))]
   #y = dataInput[, c(1)]
@@ -21,7 +20,10 @@ getPMatrix <- function(){
     diag(pMatrix) = 1
     detP = det(pMatrix)
   }
-  return(pMatrix)
+  pMatrix[lower.tri(pMatrix, diag = TRUE)] = NA
+  pSample = as.vector(t(pMatrix))
+  pSample = pSample[!is.na(pSample)]
+  return(pSample)
 }
 
 objectiveFunction <- function(solution){
@@ -71,21 +73,16 @@ geneticAlg = function(){
   
   
   pMatrix <- getPMatrix()
-  pMatrix[lower.tri(pMatrix, diag = TRUE)] = NA
-  chromosome = as.vector(t(pMatrix))
-  chromosome = chromosome[!is.na(chromosome)]
   #minFeature = 0
   #maxFeature = 1
-  #minGen = matrix(0L, nrow = 80, ncol = 80)
-  #maxGen = matrix(1L, nrow = 80, ncol = 80)
-  minGen[3160] = 0L
-  maxGen[3160] = 1L
+  minGen = rep(0,3160)
+  maxGen = rep(1, 3160)
   
   
   
   
-  results = rbga(minGen, maxGen, evalFunc = objectiveFunction, popSize = 6380, iters = 5, mutationChance = 0.01, verbose = TRUE)
-  cat(genalg:::summary.rbga(results))
+  results = rbgaCustom(pSample = getPSample, minGen, maxGen, evalFunc = objectiveFunction, popSize = 6000, iters = 5, mutationChance = 0.01, verbose = FALSE)
+  #cat(genalg:::summary.rbga(results))
   genalg:::plot.rbga(results)
   plot(results, type = "hist")
   plot(results, type = "vars")
@@ -93,9 +90,4 @@ geneticAlg = function(){
 
 
 system.time(geneticAlg())
-#system.time(simulated_annealing(chromosome))
-
-
-
- 
-
+#system.time(simulated_annealing(getPSample, objectiveFunction))

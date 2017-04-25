@@ -5,6 +5,7 @@
 # iters            = number of generations
 # mutationChance   = chance that a var in the string gets mutated
 rbgaCustom <- function(
+  pSample,
   stringMin=c(), stringMax=c(),
   suggestions=NULL,
   popSize=200, iters=100, 
@@ -80,10 +81,7 @@ rbgaCustom <- function(
       # start with an random population
       population = matrix(nrow=popSize, ncol=vars);
       # fill values
-      for (var in 1:vars) {
-        population[,var] = stringMin[var] +
-          runif(popSize)*(stringMax[var]-stringMin[var]);
-      }
+      population[,1:vars] = pSample()
     }
     
     # do iterations
@@ -103,6 +101,7 @@ rbgaCustom <- function(
       }
       bestEvals[iter] = min(evalVals);
       meanEvals[iter] = mean(evalVals);
+      cat("bestOutput: ", min(evalVals), "Mean: ", mean(evalVals), "\n" );
       if (verbose) cat(" done.\n");
       
       if (!is.null(monitorFunc)) {

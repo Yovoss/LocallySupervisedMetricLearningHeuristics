@@ -1,5 +1,5 @@
-simulated_annealing <- function(s0, tempIni = 1, tempEnd = .1, niter = 50, coolingFactor = .99) {
-  bestSolution <- currentSolution <- neighSolution <- s0
+simulated_annealing <- function(pSample, objectiveFunction, tempIni = 1, tempEnd = .1, niter = 50, coolingFactor = .99) {
+  bestSolution <- currentSolution <- neighSolution <- s0 <- pSample()
   bestOutput <- currentOutput <- neighOutput <- objectiveFunction(s0)
   
   for (k in 1:niter) {
@@ -12,7 +12,6 @@ simulated_annealing <- function(s0, tempIni = 1, tempEnd = .1, niter = 50, cooli
       temp <- (temp * coolingFactor)
       # consider a random neighbor
       neighSolution <- rnorm(length(currentSolution), currentSolution, 1)
-      #neighSolution <- runif(currentSolution, min = 0, max = 1)
       neighOutput <- objectiveFunction(neighSolution)
       # update current state
       if (neighOutput < currentOutput || runif(1, 0, 1) < exp(-(neighOutput - currentOutput) / temp)) {
