@@ -2,7 +2,7 @@ source("genalgCustom.R")
 source("SA.R")
 
 #Reading dataset
-dataInput <- read.csv(file="1_dataSetSAPS2.csv",header = TRUE, sep=",")
+dataInput <- read.csv(file="Variables.csv",header = TRUE, sep=",")
 
 #return a vector with the upper triangle matrix elements of P matrix
 getPSample <- function(currentSample = NULL){
