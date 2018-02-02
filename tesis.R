@@ -22,7 +22,7 @@ getPSample <- function(currentSample = NULL){
   #creation of a symetric matrix with det>0
   while (detP <= 0){
     #creating a square matrix with random values between 0, 1 
-    pMatrix = matrix(runif(nFeatures^2, min = 0, max = 1), nrow = nFeatures, ncol = nFeatures)
+    pMatrix = matrix(runif(nFeatures^2, min = -1, max = 1), nrow = nFeatures, ncol = nFeatures)
     if (!is.null(currentSample)){
       solution = rnorm(length(currentSample), currentSample, 1)
       pMatrix[lower.tri(pMatrix, diag = FALSE)] <- solution
